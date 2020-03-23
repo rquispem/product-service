@@ -4,3 +4,8 @@ logging:
   level:
     root: INFO
     com.rquispe: DEBUG
+
+---
+spring.profiles: docker
+
+server.port: 8080
