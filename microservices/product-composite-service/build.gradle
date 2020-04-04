@@ -1,49 +1,78 @@
-buildscript {
-	ext {
-		springBootVersion = '2.2.5.RELEASE'
-	}
-	repositories {
-		mavenCentral()
-		maven { url "https://repo.spring.io/snapshot" }
-		maven { url "https://repo.spring.io/milestone" }
-	}
-	dependencies {
-		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-	}
+plugins {
+    id 'org.springframework.boot' version '2.2.5.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.9.RELEASE'
+    id 'java'
 }
 
-plugins {
-	id 'org.springframework.boot' version '2.2.5.RELEASE'
-	id 'io.spring.dependency-management' version '1.0.9.RELEASE'
-	id 'java'
-}
+//buildscript {
+//	ext {
+//		springBootVersion = '2.2.5.RELEASE'
+//	}
+//	repositories {
+//		mavenCentral()
+//		maven { url 'https://repo.spring.io/plugins-snapshot' }
+//		maven { url 'https://repo.spring.io/plugins-milestone' }
+//		maven { url 'https://repo.spring.io/plugins-release' }
+//		maven { url "https://repo.spring.io/snapshot" }
+//		maven { url "https://repo.spring.io/milestone" }
+//	}
+//	dependencies {
+//		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+//		classpath "io.spring.gradle:dependency-management-plugin:1.0.9.RELEASE"
+//	}
+//}
+
+//plugins {
+//	id 'org.springframework.boot' version '2.2.5.RELEASE'
+//	id 'io.spring.dependency-management' version '1.0.9.RELEASE'
+//	id 'java'
+//}
 
 group = 'com.rquispe.microservices.composite.product'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '1.8'
 
+ext {
+	set('springCloudVersion', "Hoxton.SR3")
+}
 repositories {
 	mavenCentral()
 	maven { url "https://repo.spring.io/snapshot" }
 	maven { url "https://repo.spring.io/milestone" }
 	maven { url 'http://oss.jfrog.org/artifactory/oss-snapshot-local/' }
+	maven { url 'https://repo.spring.io/plugins-snapshot' }
+	maven { url 'https://repo.spring.io/plugins-milestone' }
+
 }
 
 dependencies {
+	implementation platform('org.springframework.cloud:spring-cloud-dependencies:Hoxton.SR3')
 	implementation project(":api")
 	implementation project(":util")
+
 //	springfox dependencies
 	implementation('io.springfox:springfox-swagger2:3.0.0-SNAPSHOT')
 	implementation('io.springfox:springfox-swagger-ui:3.0.0-SNAPSHOT')
 	implementation('io.springfox:springfox-spring-webflux:3.0.0-SNAPSHOT')
 
+// Cloud dependencies
+	implementation('org.springframework.cloud:spring-cloud-starter-stream-rabbit')
+	implementation('org.springframework.cloud:spring-cloud-starter-stream-kafka')
 
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
 	testImplementation('org.springframework.boot:spring-boot-starter-test') {
 		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
 	}
 	testImplementation 'io.projectreactor:reactor-test'
+	testImplementation('org.springframework.cloud:spring-cloud-stream-test-support')
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
 }
 
 test {

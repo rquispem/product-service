@@ -1,8 +1,7 @@
 package com.rquispe.api.core.review;
 
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
 
 public interface ReviewService {
     /**
@@ -30,7 +29,7 @@ public interface ReviewService {
     @GetMapping(
             value    = "/reviews",
             produces = "application/json")
-    List<Review> getReviews(@RequestParam(value = "productId", required = true) int productId);
+    Flux<Review> getReviews(@RequestParam(value = "productId", required = true) int productId);
 
     /**
      * Sample usage:

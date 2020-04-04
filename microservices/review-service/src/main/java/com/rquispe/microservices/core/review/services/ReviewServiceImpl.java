@@ -11,8 +11,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Scheduler;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -24,9 +25,11 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewMapper mapper;
 
     private final ServiceUtil serviceUtil;
+    private final Scheduler scheduler;
 
     @Autowired
-    public ReviewServiceImpl(ReviewRepository repository, ReviewMapper mapper, ServiceUtil serviceUtil) {
+    public ReviewServiceImpl(Scheduler scheduler, ReviewRepository repository, ReviewMapper mapper, ServiceUtil serviceUtil) {
+        this.scheduler = scheduler;
         this.repository = repository;
         this.mapper = mapper;
         this.serviceUtil = serviceUtil;
@@ -47,8 +50,19 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public List<Review> getReviews(int productId) {
+    public Flux<Review> getReviews(int productId) {
         if (productId < 1) throw new InvalidInputException("Invalid productId: " + productId);
+
+        return asyncFlux(getByProductId(productId)).log();
+    }
+
+    @Override
+    public void deleteReviews(int productId) {
+        LOG.debug("deleteReviews: tries to delete reviews for the product with productId: {}", productId);
+        repository.deleteAll(repository.findByProductId(productId));
+    }
+
+    protected List<Review> getByProductId(int productId) {
 
         List<ReviewEntity> entityList = repository.findByProductId(productId);
         List<Review> list = mapper.entityListToApiList(entityList);
@@ -59,9 +73,8 @@ public class ReviewServiceImpl implements ReviewService {
         return list;
     }
 
-    @Override
-    public void deleteReviews(int productId) {
-        LOG.debug("deleteReviews: tries to delete reviews for the product with productId: {}", productId);
-        repository.deleteAll(repository.findByProductId(productId));
+//  to run the blocking code in a thread from the thread pool
+    private <T> Flux<T> asyncFlux(Iterable<T> iterable) {
+        return Flux.fromIterable(iterable).publishOn(scheduler);
     }
 }

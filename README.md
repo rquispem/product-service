@@ -29,3 +29,44 @@ docker-compose exec mongodb mongo product-db --quiet --eval "db.products.find()"
 docker-compose exec mongodb mongo recommendation-db --quiet --eval "db.recommendations.find()"
 docker-compose exec mysql mysql -uuser -p review-db -e "select * from reviews"
 ```
+
+### Working with rabbit mq and kafka
+```
+curl localhost:8080/actuator/health -s | jq .
+curl -s localhost:8080/actuator/health | jq -r .status
+```
+```
+export COMPOSE_FILE=docker-compose-partitions.yml
+docker-compose build && docker-compose up -d
+unset COMPOSE_FILE
+```
+
+```
+export COMPOSE_FILE=docker-compose-kafka.yml
+docker-compose build && docker-compose up -d
+```
+
+To see a list of topics
+```
+docker-compose exec kafka /opt/kafka/bin/kafka-topics.sh --zookeeper zookeeper --list
+```
+To see the partitions in a specific topic
+```
+docker-compose exec kafka /opt/kafka/bin/kafka-topics.sh --describe --zookeeper zookeeper --topic products
+```
+To see all the messages in a specific topic, for example, the products topic
+```
+docker-compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic products --from-beginning --timeout-ms 1000
+```
+
+To see all the messages in a specific partition
+```
+docker-compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic products --from-beginning --timeout-ms 1000 --partition 0
+```
+
+Use automated tests
+```
+export COMPOSE_FILE=docker-compose-partitions.yml
+sh test-em-all.bash start stop
+unset COMPOSE_FILE
+```

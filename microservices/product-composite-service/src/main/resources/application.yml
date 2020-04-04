@@ -9,9 +9,9 @@ api:
     licenseUrl: MY LICENSE URL
 
     contact:
-      name: Contact
+      name: Ruben Quispe
       url: My
-      email: me@mail.com
+      email: ruben.quispem@mail.com
 
   product-composite:
     get-composite-product:
@@ -58,10 +58,45 @@ app:
     host: localhost
     port: 7003
 
+spring:
+  cloud:
+    stream:
+      defaultBinder: rabbit
+      default.contentType: application/json
+      bindings:
+        output-products:
+          destination: products
+          producer:
+            required-groups: auditGroup
+        output-recommendations:
+          destination: recommendations
+          producer:
+            required-groups: auditGroup
+        output-reviews:
+          destination: reviews
+          producer:
+            required-groups: auditGroup
+
+
+      kafka:
+        binder:
+          brokers: 127.0.0.1
+          defaultBrokerPort: 9092
+
+
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: guest
+    password: guest
+
 logging:
   level:
     root: INFO
     se.magnus: DEBUG
+
+management.endpoint.health.show-details: "ALWAYS"
+management.endpoints.web.exposure.include: "*"
 
 ---
 spring.profiles: docker
@@ -78,3 +113,9 @@ app:
   review-service:
     host: review
     port: 8080
+
+spring.rabbitmq.host: rabbitmq
+spring.cloud.stream.kafka.binder.brokers: kafka
+
+management.endpoint.health.show-details: "ALWAYS"
+management.endpoints.web.exposure.include: "*"
