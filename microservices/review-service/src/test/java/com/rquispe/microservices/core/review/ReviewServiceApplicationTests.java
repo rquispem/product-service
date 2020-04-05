@@ -23,8 +23,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
-		"spring.datasource.url=jdbc:h2:mem:review-db"})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+		properties = {"spring.datasource.url=jdbc:h2:mem:review-db", "eureka.client.enabled=false"})
 class ReviewServiceApplicationTests {
 
 	@Autowired

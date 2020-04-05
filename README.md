@@ -70,3 +70,28 @@ export COMPOSE_FILE=docker-compose-partitions.yml
 sh test-em-all.bash start stop
 unset COMPOSE_FILE
 ```
+
+Interact with eureka server
+```
+sh test-em-all.bash start
+docker-compose up -d --scale review=3
+docker-compose logs -f review
+
+docker-compose up -d --scale review=2 --scale eureka=0
+docker-compose up -d --scale review=1 --scale eureka=0
+docker-compose up -d --scale review=1 --scale eureka=0 --scale product=2
+curl localhost:8080/product-composite/2 -s | jq -r .serviceAddresses.pro
+
+//extract the addresses of the
+curl localhost:8080/product-composite/2 -s | jq -r .serviceAddresses
+
+//Ask the composite product service for the IP addresses it finds for the review
+docker-compose exec product-composite getent hosts review
+
+docker-compose exec --index=1 review cat /etc/hosts
+docker-compose exec --index=2 review cat /etc/hosts
+
+curl localhost:8080/product-composite/2 -s | jq -r .serviceAddresses.rev
+
+curl localhost:8080/product-composite/2 -m 2. Wait 2 seconds timeout
+```
