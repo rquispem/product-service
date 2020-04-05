@@ -1,20 +1,13 @@
-package com.rquispe.microservices.composite.product;
+package com.rquispe.springcloud.gateway;
 
-import com.rquispe.microservices.composite.product.services.ProductCompositeIntegration;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @SpringBootApplication
-@ComponentScan("com.rquispe")
-public class ProductCompositeServiceApplication {
-
-	@Autowired
-	ProductCompositeIntegration integration;
+public class GatewayApplication {
 
 	@Bean
 	@LoadBalanced
@@ -24,7 +17,7 @@ public class ProductCompositeServiceApplication {
 	}
 
 	public static void main(String[] args) {
-		SpringApplication.run(ProductCompositeServiceApplication.class, args);
+		SpringApplication.run(GatewayApplication.class, args);
 	}
 
 }
