@@ -33,7 +33,9 @@ import static org.springframework.http.HttpStatus.OK;
 import static reactor.core.publisher.Mono.just;
 import static com.rquispe.microservices.composite.product.IsSameEvent.sameEventExceptCreatedAt;
 
-@SpringBootTest(webEnvironment=RANDOM_PORT, properties = {"eureka.client.enaled=false"})
+@SpringBootTest(webEnvironment=RANDOM_PORT,
+        classes = {ProductCompositeServiceApplication.class, TestSecurityConfig.class},
+        properties = {"spring.main.allow-bean-definition-overriding=true", "eureka.client.enaled=false"})
 public class MessagingTests {
 
     private static final int PRODUCT_ID_OK = 1;

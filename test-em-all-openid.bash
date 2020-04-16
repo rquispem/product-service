@@ -190,9 +190,13 @@ fi
 
 waitForService curl -k https://$HOST:$PORT/actuator/health
 
-ACCESS_TOKEN=$(curl -k https://writer:secret@$HOST:$PORT/oauth/token -d grant_type=password -d username=magnus -d password=password -s | jq .access_token -r)
-AUTH="-H \"Authorization: Bearer $ACCESS_TOKEN\""
+#rquispe Use this for local auth server
+#ACCESS_TOKEN=$(curl -k https://writer:secret@$HOST:$PORT/oauth/token -d grant_type=password -d username=magnus -d password=password -s | jq .access_token -r)
+#AUTH="-H \"Authorization: Bearer $ACCESS_TOKEN\""
 
+#rquispe Use this for openid provider
+ACCESS_TOKEN=$(curl --request POST --url 'https://dev-ruben.auth0.com/oauth/token' --header 'content-type: application/json' --data '{"grant_type":"password", "username":"ruben.quispem@gmail.com", "password":"Harl2501105!", "audience":"https://localhost:8443/product-composite", "scope":"openid email product:read product:write", "client_id":"vZx82LSOTG6tQ491gyT1Q59QM1MfrOgb", "client_secret":"nuTrx8mISQt1ELEECSnfHiA4ESlKb1oKiWH4KSu_O3yKj-OF3zBC2Lzamgj6-NCM"}' -s | jq -r .access_token)
+echo "Access token create:$ACCESS_TOKEN"
 setupTestdata
 
 waitForMessageProcessing
@@ -230,9 +234,14 @@ assertEqual "\"Type mismatch.\"" "$(echo $RESPONSE | jq .message)"
 assertCurl 401 "curl -k https://$HOST:$PORT/product-composite/$PROD_ID_REVS_RECS -s"
 
 # Verify that the reader - client with only read scope can call the read API but not delete API.
-READER_ACCESS_TOKEN=$(curl -k https://reader:secret@$HOST:$PORT/oauth/token -d grant_type=password -d username=magnus -d password=password -s | jq .access_token -r)
-READER_AUTH="-H \"Authorization: Bearer $READER_ACCESS_TOKEN\""
+#rquispe used for local auth server
+#READER_ACCESS_TOKEN=$(curl -k https://reader:secret@$HOST:$PORT/oauth/token -d grant_type=password -d username=magnus -d password=password -s | jq .access_token -r)
 
+#rquispe used openid provider
+READER_ACCESS_TOKEN=$(curl --request POST --url 'https://dev-ruben.auth0.com/oauth/token' --header 'content-type: application/json' --data '{"grant_type":"password", "username":"ruben.quispem@gmail.com", "password":"Harl2501105", "audience":"https://localhost:8443/product-composite", "scope":"openid email product:read", "client_id":"vZx82LSOTG6tQ491gyT1Q59QM1MfrOgb", "client_secret":"nuTrx8mISQt1ELEECSnfHiA4ESlKb1oKiWH4KSu_O3yKj-OF3zBC2Lzamgj6-NCM"}' -s | jq -r .access_token)
+echo "Reader Access token create: $READER_ACCESS_TOKEN"
+
+READER_AUTH="-H \"Authorization: Bearer $READER_ACCESS_TOKEN\""
 assertCurl 200 "curl -k https://$HOST:$PORT/product-composite/$PROD_ID_REVS_RECS $READER_AUTH -s"
 assertCurl 403 "curl -k https://$HOST:$PORT/product-composite/$PROD_ID_REVS_RECS $READER_AUTH -X DELETE -s"
 

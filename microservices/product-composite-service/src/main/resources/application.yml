@@ -49,10 +49,16 @@ server.port: 7000
 
 spring.application.name: product-composite
 
+app:
+  eureka-username: u
+  eureka-password: p
+  eureka-server: localhost
+  auth-server: localhost
+
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: "http://${app.eureka-username}:${app.eureka-password}@${app.eureka-server}:8761/eureka/"
     initialInstanceInfoReplicationIntervalSeconds: 5
     registryFetchIntervalSeconds: 5
   instance:
@@ -95,10 +101,17 @@ spring:
     username: guest
     password: guest
 
+#use it for local authorization server
+spring.security.oauth2.resourceserver.jwt.jwk-set-uri: http://${app.auth-server}:9999/.well-known/jwks.json
+
+#use it for openid oauth0 provider
+#spring.security.oauth2.resourceserver.jwt.issuer-uri: https://dev-ruben.auth0.com/
+
 logging:
   level:
     root: INFO
-    se.magnus: DEBUG
+    com.rquispe: DEBUG
+    org.springframework.web.server.adapter.HttpWebHandlerAdapter: TRACE
 
 management.endpoint.health.show-details: "ALWAYS"
 management.endpoints.web.exposure.include: "*"
@@ -108,10 +121,11 @@ spring.profiles: docker
 
 server.port: 8080
 
-eureka.client.serviceUrl.defaultZone: http://eureka:8761/eureka/
-
 spring.rabbitmq.host: rabbitmq
 spring.cloud.stream.kafka.binder.brokers: kafka
 
+app:
+  eureka-server: eureka
+  auth-server: auth-server
 #management.endpoint.health.show-details: "ALWAYS"
 #management.endpoints.web.exposure.include: "*"

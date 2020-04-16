@@ -27,7 +27,11 @@ import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static reactor.core.publisher.Mono.just;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {"eureka.client.enaled=false"})
+//In each Spring integration test class, we configure TestSecurityConfig to override
+// the existing security configuration
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+		classes = {ProductCompositeServiceApplication.class, TestSecurityConfig.class},
+		properties = {"spring.main.allow-bean-definition-overriding=true", "eureka.client.enaled=false"})
 class ProductCompositeServiceApplicationTests {
 
 	private static final int PRODUCT_ID_OK = 1;
