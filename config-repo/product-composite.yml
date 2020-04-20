@@ -9,11 +9,12 @@ api:
     licenseUrl: MY LICENSE URL
 
     contact:
-      name: Ruben Quispe
+      name: Contact
       url: My
-      email: ruben.quispem@mail.com
+      email: me@mail.com
 
   product-composite:
+
     get-composite-product:
       description: Returns a composite view of the specified product id
       notes: |
@@ -28,6 +29,7 @@ api:
         # Expected partial and error responses
         1. If no product information is found, a <b>404 - Not Found</b> error will be returned
         1. In no recommendations or reviews are found for a product, a partial response will be returned
+
     create-composite-product:
       description: Creates a composite product
       notes: |
@@ -37,6 +39,7 @@ api:
         # Expected error responses
         1. If a product with the same productId as specified in the posted information already exists,
            an <b>422 - Unprocessable Entity</b> error with a "duplicate key" error message will be returned
+
     delete-composite-product:
       description: Deletes a product composite
       notes: |
@@ -47,85 +50,57 @@ api:
 
 server.port: 7000
 
-spring.application.name: product-composite
-
-app:
-  eureka-username: u
-  eureka-password: p
-  eureka-server: localhost
-  auth-server: localhost
-
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: "http://${app.eureka-username}:${app.eureka-password}@${app.eureka-server}:8761/eureka/"
-    initialInstanceInfoReplicationIntervalSeconds: 5
-    registryFetchIntervalSeconds: 5
-  instance:
-    leaseRenewalIntervalInSeconds: 5
-    leaseExpirationDurationInSeconds: 5
-
 ribbon.ServerListRefreshInterval: 5000
 
 ribbon.NFLoadBalancerPingInterval: 5
 
-spring:
-  cloud:
-    stream:
-      defaultBinder: rabbit
-      default.contentType: application/json
-      bindings:
-        output-products:
-          destination: products
-          producer:
-            required-groups: auditGroup
-        output-recommendations:
-          destination: recommendations
-          producer:
-            required-groups: auditGroup
-        output-reviews:
-          destination: reviews
-          producer:
-            required-groups: auditGroup
+spring.cloud.stream:
+  defaultBinder: rabbit
+  default.contentType: application/json
+  bindings:
+    output-products:
+      destination: products
+      producer:
+        required-groups: auditGroup
+    output-recommendations:
+      destination: recommendations
+      producer:
+        required-groups: auditGroup
+    output-reviews:
+      destination: reviews
+      producer:
+        required-groups: auditGroup
 
-
-      kafka:
-        binder:
-          brokers: 127.0.0.1
-          defaultBrokerPort: 9092
-
-
-  rabbitmq:
-    host: 127.0.0.1
-    port: 5672
-    username: guest
-    password: guest
-
-#use it for local authorization server
 spring.security.oauth2.resourceserver.jwt.jwk-set-uri: http://${app.auth-server}:9999/.well-known/jwks.json
-
-#use it for openid oauth0 provider
-#spring.security.oauth2.resourceserver.jwt.issuer-uri: https://dev-ruben.auth0.com/
 
 logging:
   level:
     root: INFO
-    com.rquispe: DEBUG
+    se.magnus: DEBUG
     org.springframework.web.server.adapter.HttpWebHandlerAdapter: TRACE
-
-management.endpoint.health.show-details: "ALWAYS"
-management.endpoints.web.exposure.include: "*"
 
 ---
 spring.profiles: docker
 
 server.port: 8080
 
-spring.rabbitmq.host: rabbitmq
-spring.cloud.stream.kafka.binder.brokers: kafka
+---
+spring.profiles: streaming_partitioned
 
-app:
-  eureka-server: eureka
-  auth-server: auth-server
-#management.endpoint.health.show-details: "ALWAYS"
-#management.endpoints.web.exposure.include: "*"
+spring.cloud.stream.bindings.output-products.producer:
+  partition-key-expression: payload.key
+  partition-count: 2
+
+spring.cloud.stream.bindings.output-recommendations.producer:
+  partition-key-expression: payload.key
+  partition-count: 2
+
+spring.cloud.stream.bindings.output-reviews.producer:
+  partition-key-expression: payload.key
+  partition-count: 2
+
+---
+spring.profiles: kafka
+
+management.health.rabbit.enabled: false
+spring.cloud.stream.defaultBinder: kafka

@@ -95,3 +95,53 @@ curl localhost:8080/product-composite/2 -s | jq -r .serviceAddresses.rev
 
 curl localhost:8080/product-composite/2 -m 2. Wait 2 seconds timeout
 ```
+
+Acquiring access token Using implicit  grant flow
+```
+//get access token for reader using browser
+https://localhost:8443/oauth/authorize?response_type=token&client_id=reader&redirect_uri=http://my.redirect.uri
+
+//get access token for writer using browser
+https://localhost:8443/oauth/authorize?response_type=token&client_id=writer&redirect_uri=http://my.redirect.uri
+```
+
+Acquiring access token Using code  grant flow(most secure)
+
+```
+//1. Obtener el código de acceso q solo servirá una vez
+https://localhost:8443/oauth/authorize?response_type=code&client_id=reader&redirect_uri=http://my.redirect.uri&scope=product:read&state=35725
+
+
+//2. Intercambiar el código por el access token
+curl -k https://reader:secret@localhost:8443/oauth/token \
+ -d grant_type=authorization_code \
+ -d client_id=reader \
+ -d redirect_uri=http://my.redirect.uri \
+ -d code=$CODE -s | jq .
+
+curl -k https://reader:secret@localhost:8443/oauth/token \
+ -d grant_type=authorization_code \
+ -d client_id=reader \
+ -d redirect_uri=http://my.redirect.uri \
+ -d code=95K1Hu -s | jq .
+
+//Get code for writer client
+https://localhost:8443/oauth/authorize?response_type=code&client_id=writer&redirect_uri=http://my.redirect.uri&scope=product:read+product:write&state=72489
+
+curl -k https://writer:secret@localhost:8443/oauth/token \
+ -d grant_type=authorization_code \
+ -d client_id=writer \
+ -d redirect_uri=http://my.redirect.uri \
+ -d code=qnTz2J -s | jq .
+
+// Calling protected apis
+//1. Get access token using one of the access token acquired for reader
+ACCESS_TOKEN=an-invalid-token
+
+2//
+curl https://localhost:8443/product-composite/2 -k -H "Authorization: Bearer $ACCESS_TOKEN" -i
+
+
+//3 we need to call delete request with a writer scope so first we get one for it
+curl https://localhost:8443/product-composite/999 -k -H "Authorization: Bearer $ACCESS_TOKEN" -X DELETE -i
+``` 

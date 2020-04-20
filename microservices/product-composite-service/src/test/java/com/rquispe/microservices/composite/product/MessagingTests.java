@@ -35,7 +35,7 @@ import static com.rquispe.microservices.composite.product.IsSameEvent.sameEventE
 
 @SpringBootTest(webEnvironment=RANDOM_PORT,
         classes = {ProductCompositeServiceApplication.class, TestSecurityConfig.class},
-        properties = {"spring.main.allow-bean-definition-overriding=true", "eureka.client.enaled=false"})
+        properties = {"spring.main.allow-bean-definition-overriding=true", "eureka.client.enaled=false", "spring.cloud.config.enabled=false"})
 public class MessagingTests {
 
     private static final int PRODUCT_ID_OK = 1;

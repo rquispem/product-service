@@ -37,6 +37,9 @@ dependencies {
 	implementation('org.springframework.cloud:spring-cloud-starter-stream-kafka')
 	implementation('org.springframework.cloud:spring-cloud-starter-netflix-eureka-client')
 
+	implementation('org.springframework.cloud:spring-cloud-starter-config')
+	implementation('org.springframework.retry:spring-retry')
+
 
 	testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo'
 	testImplementation('org.springframework.boot:spring-boot-starter-test') {
