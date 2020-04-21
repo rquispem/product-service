@@ -4,11 +4,16 @@ import com.rquispe.api.composite.product.*;
 import com.rquispe.api.core.product.Product;
 import com.rquispe.api.core.recommendation.Recommendation;
 import com.rquispe.api.core.review.Review;
+import com.rquispe.util.exceptions.NotFoundException;
 import com.rquispe.util.http.ServiceUtil;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.reactor.retry.RetryExceptionWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,6 +26,8 @@ import java.util.stream.Collectors;
 @RestController
 public class ProductCompositeServiceImpl implements ProductCompositeService {
     private static final Logger LOG = LoggerFactory.getLogger(ProductCompositeServiceImpl.class);
+
+    private final SecurityContext nullSC = new SecurityContextImpl();
 
     private final ServiceUtil serviceUtil;
     private ProductCompositeIntegration integration;
@@ -64,10 +71,13 @@ public class ProductCompositeServiceImpl implements ProductCompositeService {
     }
 
     @Override
-    public Mono<ProductAggregate> getCompositeProduct(int productId) {
+    public Mono<ProductAggregate> getCompositeProduct(int productId, int delay, int faultPercent) {
         return Mono.zip(
-                values -> createProductAggregate((Product) values[0], (List<Recommendation>) values[1], (List<Review>) values[2], serviceUtil.getServiceAddress()),
-                integration.getProduct(productId),
+                values -> createProductAggregate((SecurityContext) values[0], (Product) values[1], (List<Recommendation>) values[2], (List<Review>) values[3], serviceUtil.getServiceAddress()),
+                ReactiveSecurityContextHolder.getContext().defaultIfEmpty(nullSC),
+                integration.getProduct(productId, delay, faultPercent)
+                        .onErrorMap(RetryExceptionWrapper.class, retryException -> retryException.getCause())
+                        .onErrorReturn(CallNotPermittedException.class, getProductFallbackValue(productId)),
                 integration.getRecommendations(productId).collectList(),
                 integration.getReviews(productId).collectList())
                 .doOnError(ex -> LOG.warn("getCompositeProduct failed: {}", ex.toString()))
@@ -89,7 +99,20 @@ public class ProductCompositeServiceImpl implements ProductCompositeService {
         LOG.debug("getCompositeProduct: aggregate entities deleted for productId: {}", productId);
     }
 
-    private ProductAggregate createProductAggregate(Product product, List<Recommendation> recommendations, List<Review> reviews, String serviceAddress) {
+    private Product getProductFallbackValue(int productId) {
+
+        LOG.warn("Creating a fallback product for productId = {}", productId);
+
+        if (productId == 13) {
+            String errMsg = "Product Id: " + productId + " not found in fallback cache!";
+            LOG.warn(errMsg);
+            throw new NotFoundException(errMsg);
+        }
+
+        return new Product(productId, "Fallback product" + productId, productId, serviceUtil.getServiceAddress());
+    }
+
+    private ProductAggregate createProductAggregate(SecurityContext sc, Product product, List<Recommendation> recommendations, List<Review> reviews, String serviceAddress) {
 
         // 1. Setup product info
         int productId = product.getProductId();

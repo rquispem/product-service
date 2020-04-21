@@ -144,4 +144,42 @@ curl https://localhost:8443/product-composite/2 -k -H "Authorization: Bearer $AC
 
 //3 we need to call delete request with a writer scope so first we get one for it
 curl https://localhost:8443/product-composite/999 -k -H "Authorization: Bearer $ACCESS_TOKEN" -X DELETE -i
-``` 
+```
+
+Checking Resilience4j
+
+```
+
+1. Get an access token
+unset ACCESS_TOKEN
+ACCESS_TOKEN=$(curl -k https://writer:secret@localhost:8443/oauth/token -d grant_type=password -d username=magnus -d password=password -s | jq -r .access_token)
+echo $ACCESS_TOKEN
+
+2. Check the get api, should get 200 code
+curl -H "Authorization: Bearer $ACCESS_TOKEN" -k https://localhost:8443/product-composite/2 -w "%{http_code}\n" -o /dev/null -s
+
+3. Check circuitbraker state, should be closed
+docker run --rm -it --network=my-network alpine wget product-composite:8080/actuator/health -qO - | jq -r .components.circuitBreakers.details.product.details.state
+
+4. Make 3 negative’s tests
+
+curl -H "Authorization: Bearer $ACCESS_TOKEN" -k https://localhost:8443/product-composite/2?delay=3 -s | jq .
+
+
+5. Test again within waitDurationInOpenState time
+
+
+6. Wrap this up by listing the last three state transitions using the following command:
+
+docker run --rm -it --network=my-network alpine wget product-composite:8080/actuator/circuitbreakerevents/product/STATE_TRANSITION -qO - | jq -r '.circuitBreakerEvents[-3].stateTransition, .circuitBreakerEvents[-2].stateTransition, .circuitBreakerEvents[-1].stateTransition
+
+7. Force a random error to retry
+
+time curl -H "Authorization: Bearer $ACCESS_TOKEN" -k https://localhost:8443/product-composite/2?faultPercent=25 -w "%{http_code}\n" -o /dev/null -s
+
+
+8. Show retries
+
+docker run --rm -it --network=my-network alpine wget product-composite:8080/actuator/retryevents -qO - | jq '.retryEvents[-2], .retryEvents[-1]'
+
+```

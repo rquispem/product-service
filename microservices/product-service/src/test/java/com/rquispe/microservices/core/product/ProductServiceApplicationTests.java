@@ -18,14 +18,15 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static com.rquispe.api.event.Event.Type.CREATE;
 import static com.rquispe.api.event.Event.Type.DELETE;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.http.HttpStatus.*;
 import static org.junit.Assert.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		properties = {"spring.data.mongodb.port: 0", "eureka.client.enabled=false", "spring.cloud.config.enabled=false"})
-class ProductServiceApplicationTests {
+
+@SpringBootTest(webEnvironment=RANDOM_PORT, properties = {"spring.data.mongodb.port: 0", "eureka.client.enabled=false", "spring.cloud.config.enabled=false"})
+public class ProductServiceApplicationTests {
 
 	@Autowired
 	private WebTestClient client;
@@ -103,7 +104,7 @@ class ProductServiceApplicationTests {
 	public void getProductInvalidParameterString() {
 
 		getAndVerifyProduct("/no-integer", BAD_REQUEST)
-				.jsonPath("$.path").isEqualTo("/products/no-integer")
+				.jsonPath("$.path").isEqualTo("/product/no-integer")
 				.jsonPath("$.message").isEqualTo("Type mismatch.");
 	}
 
@@ -112,7 +113,7 @@ class ProductServiceApplicationTests {
 
 		int productIdNotFound = 13;
 		getAndVerifyProduct(productIdNotFound, NOT_FOUND)
-				.jsonPath("$.path").isEqualTo("/products/" + productIdNotFound)
+				.jsonPath("$.path").isEqualTo("/product/" + productIdNotFound)
 				.jsonPath("$.message").isEqualTo("No product found for productId: " + productIdNotFound);
 	}
 
@@ -122,7 +123,7 @@ class ProductServiceApplicationTests {
 		int productIdInvalid = -1;
 
 		getAndVerifyProduct(productIdInvalid, UNPROCESSABLE_ENTITY)
-				.jsonPath("$.path").isEqualTo("/products/" + productIdInvalid)
+				.jsonPath("$.path").isEqualTo("/product/" + productIdInvalid)
 				.jsonPath("$.message").isEqualTo("Invalid productId: " + productIdInvalid);
 	}
 
@@ -132,7 +133,7 @@ class ProductServiceApplicationTests {
 
 	private WebTestClient.BodyContentSpec getAndVerifyProduct(String productIdPath, HttpStatus expectedStatus) {
 		return client.get()
-				.uri("/products" + productIdPath)
+				.uri("/product" + productIdPath)
 				.accept(APPLICATION_JSON)
 				.exchange()
 				.expectStatus().isEqualTo(expectedStatus)
@@ -150,5 +151,4 @@ class ProductServiceApplicationTests {
 		Event<Integer, Product> event = new Event(DELETE, productId, null);
 		input.send(new GenericMessage<>(event));
 	}
-
 }
