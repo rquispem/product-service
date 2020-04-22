@@ -36,6 +36,14 @@ dependencies {
     implementation "org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:${springBootVersion}"
     implementation('org.springframework.cloud:spring-cloud-starter-netflix-eureka-client')
     implementation 'org.springframework.cloud:spring-cloud-starter-config'
+
+    //tracing
+    implementation 'org.springframework.cloud:spring-cloud-starter-sleuth:2.1.1.RELEASE'
+    implementation 'org.springframework.cloud:spring-cloud-starter-zipkin:2.1.1.RELEASE'
+
+    implementation 'org.springframework.cloud:spring-cloud-starter-stream-rabbit:2.1.1.RELEASE'
+    implementation 'org.springframework.cloud:spring-cloud-starter-stream-kafka:2.1.1.RELEASE'
+
     implementation 'org.springframework.retry:spring-retry'
 
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
