@@ -25,7 +25,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 
 
-@SpringBootTest(webEnvironment=RANDOM_PORT, properties = {"spring.data.mongodb.port: 0", "eureka.client.enabled=false", "spring.cloud.config.enabled=false"})
+@SpringBootTest(webEnvironment=RANDOM_PORT, properties = {"spring.data.mongodb.port: 0", "spring.cloud.config.enabled=false"})
 public class ProductServiceApplicationTests {
 
 	@Autowired

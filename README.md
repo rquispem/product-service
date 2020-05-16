@@ -183,3 +183,42 @@ time curl -H "Authorization: Bearer $ACCESS_TOKEN" -k https://localhost:8443/pro
 docker run --rm -it --network=my-network alpine wget product-composite:8080/actuator/retryevents -qO - | jq '.retryEvents[-2], .retryEvents[-1]'
 
 ```
+
+Running test in Kubernetes
+```
+Unset KUBECONFIG
+minikube start \
+--memory=10240 \
+--cpus=4 \
+--disk-size=30g \
+--vm-driver=virtualbox \
+--kubernetes-version=v1.15.5 \
+--profile=product-project
+
+kubectl create namespace <namespace_name>
+kubectl config set-context $(kubectl config current-context) --namespace=<namespace_name>
+eval $(minikube -p <profile> docker-env)
+
+kubectl create secret generic config-server-secrets \
+  --from-literal=ENCRYPT_KEY=my-very-secure-encrypt-key \
+  --from-literal=SPRING_SECURITY_USER_NAME=dev-usr \
+  --from-literal=SPRING_SECURITY_USER_PASSWORD=dev-pwd \
+  --save-config
+
+kubectl create secret generic config-client-credentials \
+--from-literal=CONFIG_SERVER_USR=dev-usr \
+--from-literal=CONFIG_SERVER_PWD=dev-pwd \ 
+--save-config
+
+docker pull mysql:5.7
+docker pull mongo:3.6.9
+docker pull rabbitmq:3.7.8-management
+docker pull openzipkin/zipkin:2.21
+
+kubectl apply -k kubernetes/services/overlays/dev
+
+kubectl wait --timeout=600s --for=condition=ready pod --all
+
+
+HOST=$(minikube -p <profile_name> ip) PORT=31443 ./test-em-all-kubernetes.bash
+```

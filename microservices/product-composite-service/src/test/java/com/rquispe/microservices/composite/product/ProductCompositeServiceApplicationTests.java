@@ -32,7 +32,7 @@ import static reactor.core.publisher.Mono.just;
 // the existing security configuration
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		classes = {ProductCompositeServiceApplication.class, TestSecurityConfig.class},
-		properties = {"spring.main.allow-bean-definition-overriding=true", "eureka.client.enaled=false", "spring.cloud.config.enabled=false"})
+		properties = {"spring.main.allow-bean-definition-overriding=true", "spring.cloud.config.enabled=false"})
 public class ProductCompositeServiceApplicationTests {
 
 	private static final int PRODUCT_ID_OK = 1;
