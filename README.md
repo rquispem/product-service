@@ -222,3 +222,32 @@ kubectl wait --timeout=600s --for=condition=ready pod --all
 
 HOST=$(minikube -p <profile_name> ip) PORT=31443 ./test-em-all-kubernetes.bash
 ```
+
+Running prod in kubernetes
+```
+./gradlew clean build
+
+“eval $(minikube docker-env)
+docker-compose up -d mongodb mysql rabbitmq”
+“docker tag hands-on/auth-server hands-on/auth-server:v1
+docker tag hands-on/config-server hands-on/config-server”
+
+“docker tag hands-on/gateway hands-on/gateway:v1 
+docker tag hands-on/product-composite-service hands-on/product-composite-service:v1 
+docker tag hands-on/product-service hands-on/product-service:v1
+docker tag hands-on/recommendation-service hands-on/recommendation-service:v1
+docker tag hands-on/review-service hands-on/review-service:v1”
+
+“kubectl apply -k kubernetes/services/overlays/prod”
+```
+
+Upgrading and rolling upgrades and roll back a deploymnet
+```
+kubectl set image deployment/product pro=hands-on/product-service:v2
+kubectl get pods -l app=product -w
+kubectl rollout history deployment product
+kubectl rollout undo deployment product --to-revision=1
+kubectl get pod -l app=product -w
+kubectl delete namespace hands-on
+
+```
